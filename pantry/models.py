@@ -1,18 +1,19 @@
 from django.db import models
 
+from pantry.constants import QUANTITY_UOM_CHOICES
 
-class Nutrient(models.Model):
-    name = models.CharField(max_length=255)
+
+class FoodInventory(models.Model):
+    food = models.ForeignKey("Food", on_delete=models.CASCADE)
+    quantity = models.FloatField()
+    quantity_uom = models.CharField(max_length=255, default="g", choices=QUANTITY_UOM_CHOICES)
+    expiration_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.quantity} {self.quantity_uom} {self.food.name}"
 
-
-class NutrientValue(models.Model):
-    nutrient = models.ForeignKey(Nutrient, on_delete=models.CASCADE)
-    value = models.FloatField()
-    food = models.ForeignKey('Food', on_delete=models.CASCADE)
-
+    class Meta:
+        verbose_name_plural = "Food Inventories"
 
 class Food(models.Model):
     name = models.CharField(max_length=255)
@@ -21,18 +22,29 @@ class Food(models.Model):
         return self.name
 
 class Ingredient(models.Model):
-    food = models.ForeignKey(Food, on_delete=models.CASCADE)
+    food = models.ForeignKey(Food, on_delete=models.PROTECT)
     quantity = models.FloatField()
-    unit = models.CharField(max_length=255)
-    recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE)
-
+    quantity_uom = models.CharField(max_length=255, default="grams")
+    recipe = models.ForeignKey("Recipe", on_delete=models.CASCADE)
     def __str__(self):
-        return f"{self.quantity} {self.unit} {self.food.name}"
+        return f"{self.quantity} {self.quantity_uom} {self.food.name}"
 
 class Recipe(models.Model):
     name = models.CharField(max_length=255)
-    ingredients = models.ManyToManyField(Food)
     directions = models.TextField()
+    calories = models.PositiveIntegerField(default=0)
+    protein = models.PositiveIntegerField( default=0)
+    tags = models.ManyToManyField("Tag", related_name="recipes", null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Tags"

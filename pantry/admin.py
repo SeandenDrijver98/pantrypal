@@ -1,24 +1,33 @@
 from django.contrib import admin
-from .models import Nutrient, NutrientValue, Ingredient, Food, Recipe
+from django_extensions.admin import ForeignKeyAutocompleteTabularInline, ForeignKeyAutocompleteAdmin
 
-class NutrientValueInline(admin.TabularInline):
-    model = NutrientValue
-    extra = 1
+from .models import Ingredient, Food, Recipe, FoodInventory, Tag
 
-class IngredientInline(admin.TabularInline):
+
+class IngredientInline(ForeignKeyAutocompleteTabularInline):
     model = Ingredient
+    related_search_fields = {
+        'food': ('name'),
+    }
     extra = 1
-
-@admin.register(Nutrient)
-class NutrientAdmin(admin.ModelAdmin):
-    inlines = [NutrientValueInline]
 
 @admin.register(Food)
 class FoodAdmin(admin.ModelAdmin):
-    pass
+
+    search_fields = "name",
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    inlines = [IngredientInline]
+    inlines = IngredientInline,
 
 
+@admin.register(FoodInventory)
+class FoodInventoryAdmin(ForeignKeyAutocompleteAdmin):
+    search_fields = "food__name",
+    related_search_fields = {
+        'food': ('name'),
+    }
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    pass

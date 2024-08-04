@@ -1,0 +1,29 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+django-admin = "*"
+djangorestframework = "*"
+django-filter = "*"
+celery = "*"
+redis = "*"
+scrapy = "*"
+scrapy-djangoitem = "*"
+django-cors-headers = "*"
+pillow = "*"
+gunicorn = "*"
+psycopg2-binary = "*"
+python-dotenv = "*"
+whitenoise = "*"
+djangorestframework-simplejwt = "*"
+boto3 = "*"
+django-storages = "*"
+dj-database-url = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

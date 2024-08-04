@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from rest_framework import viewsets
 
-# Create your views here.
+from pantry.models import FoodInventory
+from pantry.serializers import FoodInventorySerializer
+
+
+class InventoryViewSet(viewsets.ModelViewSet):
+    queryset = FoodInventory.objects.all()
+    serializer_class = FoodInventorySerializer
