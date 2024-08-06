@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -15,33 +16,33 @@ class InventoryViewSet(viewsets.ModelViewSet):
 
 
 class NeededIngredientsView(APIView):
+    permission_classes = [IsAuthenticated]
     """ Returns the ingredients needed to create the supplied list of recipes """
     def post(self, request):
         recipes_to_create = Recipe.objects.filter(id__in=request.data["recipe_ids"])
-        ingredients_to_create = Ingredient.objects.filter(recipe__in=recipes_to_create).values("food", "quantity", "quantity_uom")
+        ingredients_to_create = Ingredient.objects.filter(recipe__in=recipes_to_create).values("food__name", "quantity", "quantity_uom")
 
         missing_ingredients = []
 
         for ingredient in ingredients_to_create:
-            food_inventory = FoodInventory.objects.filter(food=ingredient["food"])
+            food_inventory = FoodInventory.objects.filter(food__name=ingredient["food__name"])
             if not food_inventory.exists():
                 missing_ingredients.append(ingredient)
             else:
                 food_inventory = food_inventory.first()
                 if food_inventory.quantity < ingredient["quantity"]:
-                    missing_ingredients.append({"food":ingredient, "quantity":ingredient["quantity"] - food_inventory.quantity, "quantity_uom":ingredient["quantity_uom"]})
+                    missing_ingredients.append({"food": ingredient["food__name"], "quantity":ingredient["quantity"] - food_inventory.quantity, "quantity_uom":ingredient["quantity_uom"]})
+        # TODO if An ingredient is listed as needed twice in the response, combine the quantities
 
-        #  Stack duplicate foods
-        for ingredient in missing_ingredients:
-            for duplicate in missing_ingredients:
-                if ingredient["food"] == duplicate["food"]:
-                    ingredient["quantity"] += duplicate["quantity"]
-                    missing_ingredients.remove(duplicate)
 
-        return Response(missing_ingredients)
+
+        return Response({"uses": ingredients_to_create, "missing": missing_ingredients})
+
 
 
 class CreatableRecipes(APIView):
+    permission_classes = [IsAuthenticated]
+
     """ Returns the recipes that can be created with the current inventory """
     def get(self, request):
         food_inventory = FoodInventory.objects.filter(user=request.user)
