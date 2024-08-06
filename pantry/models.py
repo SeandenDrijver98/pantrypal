@@ -15,11 +15,13 @@ class FoodInventory(models.Model):
     class Meta:
         verbose_name_plural = "Food Inventories"
 
+
 class Food(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
+
 
 class Ingredient(models.Model):
     food = models.ForeignKey(Food, on_delete=models.PROTECT)
@@ -29,12 +31,13 @@ class Ingredient(models.Model):
     def __str__(self):
         return f"{self.quantity} {self.quantity_uom} {self.food.name}"
 
+
 class Recipe(models.Model):
     name = models.CharField(max_length=255)
     directions = models.TextField()
     calories = models.PositiveIntegerField(default=0)
     protein = models.PositiveIntegerField( default=0)
-    tags = models.ManyToManyField("Tag", related_name="recipes", null=True, blank=True)
+    tags = models.ManyToManyField("Tag", related_name="recipes")
 
     def __str__(self):
         return self.name
