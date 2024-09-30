@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from django_extensions.admin import ForeignKeyAutocompleteTabularInline, ForeignKeyAutocompleteAdmin
 
-from .models import Ingredient, Food, Recipe, FoodInventory, Tag
+from .models import Ingredient, Food, Recipe, FoodInventory, Tag, User
 
 
 class IngredientInline(ForeignKeyAutocompleteTabularInline):
@@ -30,4 +31,9 @@ class FoodInventoryAdmin(ForeignKeyAutocompleteAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
     pass

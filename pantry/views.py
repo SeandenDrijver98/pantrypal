@@ -1,18 +1,53 @@
+from django.db.models import Q
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from pantry.models import FoodInventory, Recipe, Ingredient
-from pantry.serializers import FoodInventorySerializer
+from pantry.models import FoodInventory, Recipe, Ingredient, User
+from pantry.serializers import FoodInventorySerializer, UserSerializer, RecipeSerializer
 
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    @action(detail=False, methods=["post"])
+    def follow(self, request):
+        if not request.data.get("user_email"):
+            return Response({"message": "user_email is required"}, status=400)
+
+        user = User.objects.get(email__iexact=request.data["user_email"])
+        request.user.following.add(user)
+        return Response({"message": f"Following recipes created by {user.email}"})
 
 class InventoryViewSet(viewsets.ModelViewSet):
     queryset = FoodInventory.objects.all()
     serializer_class = FoodInventorySerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return FoodInventory.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Recipe.objects.filter(Q(created_by__in=self.request.user.following.all()) | Q(created_by=self.request.user)).order_by("-date_created")
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
 
 class NeededIngredientsView(APIView):

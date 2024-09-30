@@ -18,8 +18,14 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from pantry.views import NeededIngredientsView, CreatableRecipes
+from pantry.views import NeededIngredientsView, CreatableRecipes, InventoryViewSet, UserViewSet, RecipeViewSet
 
+from rest_framework import routers
+
+router = routers.SimpleRouter()
+router.register(r'api/users', UserViewSet)
+router.register(r"api/inventory", InventoryViewSet)
+router.register(r"api/recipes", RecipeViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -27,4 +33,4 @@ urlpatterns = [
 
     path('api/needed_ingredients/', NeededIngredientsView.as_view(), name='needed_ingredients'),
     path('api/creatable_recipes/', CreatableRecipes.as_view(), name='creatable_recipes'),
-]
+] + router.urls
